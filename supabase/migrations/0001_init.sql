@@ -82,6 +82,10 @@ create policy rooms_read   on rooms   for select to anon using (true);
 create policy players_read on players for select to anon using (true);
 create policy answers_read on answers for select to anon using (true);
 
+-- Tabelrechten: RLS regelt de rijen, maar anon heeft ook tabeltoegang nodig.
+-- (Supabase geeft dit standaard, maar expliciet is veiliger.)
+grant select on rooms, players, answers to anon;
+
 -- ---------- Helper: host-key check ----------
 
 create or replace function _check_host_key(p_host_key text)
