@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Live Quiz — Host</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="host">
+  <div id="app">
+
+    <section id="setup" class="screen">
+      <h1>Host — Live Quiz</h1>
+      <p class="muted">Voer eenmalig de host-key in (staat in Supabase, tabel <code>settings</code>, rij <code>host_key</code>).</p>
+      <input id="hostkey" type="password" placeholder="host-key" autocomplete="off">
+      <button id="btn-start" class="btn primary">Start spel</button>
+      <p id="setup-error" class="error"></p>
+    </section>
+
+    <section id="lobby" class="screen hidden">
+      <div class="lobby-grid">
+        <div class="lobby-left">
+          <h2>Scan om mee te doen</h2>
+          <div id="qr" class="qr"></div>
+          <p class="join">Code: <b id="roomcode"></b></p>
+          <p class="muted small" id="joinurl"></p>
+        </div>
+        <div class="lobby-right">
+          <h2>Spelers (<span id="playercount">0</span>)</h2>
+          <ul id="playerlist" class="playerlist"></ul>
+        </div>
+      </div>
+      <button id="btn-question" class="btn primary big">Start spel</button>
+    </section>
+
+    <section id="quiz" class="screen hidden">
+      <div class="qhead">
+        <span id="qnum" class="qnum"></span>
+        <span id="timer" class="timer"></span>
+      </div>
+      <h1 id="qvraag" class="question"></h1>
+      <div id="qopties" class="opties"></div>
+      <div id="histogram" class="histogram hidden"></div>
+      <div class="controls">
+        <button id="btn-reveal" class="btn primary">Toon antwoord</button>
+        <button id="btn-next" class="btn primary hidden">Volgende vraag</button>
+      </div>
+    </section>
+
+    <section id="end" class="screen hidden">
+      <h2>Eindstand</h2>
+      <ol id="boardend" class="board"></ol>
+      <button id="btn-newgame" class="btn">Nieuw spel</button>
+    </section>
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+  <script type="module" src="js/host.js"></script>
+</body>
+</html>

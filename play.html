@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>Live Quiz — Doe mee</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="play">
+
+  <section id="join" class="screen">
+    <h1>Doe mee</h1>
+    <p class="muted" id="roomlabel"></p>
+    <input id="name" type="text" placeholder="Je naam" autocomplete="off" maxlength="24">
+    <button id="btn-join" class="btn primary big">Doe mee</button>
+    <p id="joinerror" class="error"></p>
+  </section>
+
+  <section id="wait" class="screen hidden">
+    <h1 id="waittitle">Welkom</h1>
+    <p class="muted">Wachten tot de host start…</p>
+    <p class="score-line">Score: <b id="score">0</b></p>
+  </section>
+
+  <section id="question" class="screen hidden">
+    <div class="phead">
+      <span id="ptimer" class="timer"></span>
+    </div>
+    <h2 id="pqvraag" class="question"></h2>
+    <div id="popties" class="popties"></div>
+    <p id="panswered" class="answered"></p>
+    <p class="score-line">Score: <b id="pscore">0</b></p>
+  </section>
+
+  <section id="end" class="screen hidden">
+    <h2>Klaar!</h2>
+    <canvas id="card" class="card-canvas"></canvas>
+    <div class="row">
+      <button id="btn-share" class="btn primary">Delen</button>
+      <button id="btn-download" class="btn">Download beeld</button>
+    </div>
+  </section>
+
+  <script type="module" src="js/play.js"></script>
+</body>
+</html>
