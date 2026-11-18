@@ -63,7 +63,7 @@ export function downloadAnswersPdf(opts = {}) {
     doc.setTextColor(20);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(13);
-    const qLines = doc.splitTextToSize(`${i + 1}. ${q.vraag}`, W - 2 * M);
+    const qLines = doc.splitTextToSize(`${i + 1}. ${q.vraag}${q.juist == null ? "   (peiling)" : ""}`, W - 2 * M);
     doc.text(qLines, M, y);
     y += qLines.length * 17 + 6;
 

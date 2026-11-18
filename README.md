@@ -133,6 +133,25 @@ Voorbeelden staan in `templates/` (er zijn downloadlinks in de admin).
 
 Er zijn 4 antwoordopties per vraag in het beheerscherm (het spel gaat daarvan uit).
 
+### Peilingen (vragen zonder juist antwoord)
+
+Vink **"Peiling — geen juist antwoord"** aan bij een vraag, en de vraag krijgt geen goed
+antwoord. De deelnemers antwoorden gewoon, er worden **geen punten** gegeven, en bij het
+onthullen zie je de **verdeling**: hoeveel deelnemers welke optie kozen, in balkjes met
+percentages. Dat is het startpunt van de discussie.
+
+Bij een gewone vraag zie je die verdeling trouwens ook — het juiste antwoord krijgt dan een
+groene balk met een ✓. De deelnemers zien de verdeling op hun gsm ook.
+
+**Bij import:** laat je het `juist`-veld leeg (of zet je nergens een `[x]` in Markdown), dan
+wordt die vraag een peiling. Je krijgt bij de preview te zien hoeveel dat er zijn.
+
+### De verdeling op het grote scherm
+
+Na het onthullen staat onder de vraag: *"X van Y spelers koos"*, met per optie een balk, het
+aantal en het percentage. Die balken **updaten live** — als er nog iemand antwoordt terwijl het
+onthuld is, zie je dat meteen. Ideaal om te vragen "wie koos B, en waarom?"
+
 ### E-mailadressen
 
 Na het spel kan elke deelnemer zijn e-mailadres achterlaten (met een expliciete

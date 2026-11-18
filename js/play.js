@@ -128,17 +128,32 @@ async function answer(room, choice) {
   $("panswered").textContent = "Antwoord ontvangen ✓";
 }
 
-function showReveal(room) {
+async function showReveal(room) {
   const mine = localStorage.getItem("ans_" + roomId + "_" + room.question_index);
+  const heeftJuist = room.correct_index !== null && room.correct_index !== undefined;
+
   [...$("popties").children].forEach((el, i) => {
     el.disabled = true;
-    if (i === room.correct_index) el.classList.add("juist");
-    else if (mine !== null && Number(mine) === i) el.classList.add("fout");
+    const isMine = mine !== null && Number(mine) === i;
+    if (heeftJuist) {
+      if (i === room.correct_index) el.classList.add("juist");
+      else if (isMine) el.classList.add("fout");
+    } else if (isMine) {
+      el.classList.add("mijn");  // peiling: jouw keuze, zonder goed of fout
+    }
   });
+
   clearInterval(timerHandle);
   $("ptimer").textContent = "";
-  $("panswered").textContent =
-    mine !== null && Number(mine) === room.correct_index ? "Juist! 🎉" : mine !== null ? "Helaas." : "Geen antwoord.";
+  $("panswered").textContent = !heeftJuist
+    ? mine !== null
+      ? "Bedankt voor je antwoord."
+      : "Geen antwoord."
+    : mine !== null && Number(mine) === room.correct_index
+      ? "Juist! 🎉"
+      : mine !== null
+        ? "Helaas."
+        : "Geen antwoord.";
 
   // Duiding van de host
   const uitleg = (room.question?.uitleg || "").trim();
@@ -149,6 +164,42 @@ function showReveal(room) {
   } else {
     el.classList.add("hidden");
   }
+
+  await renderPlayerDist(room);
+}
+
+/** De verdeling van de antwoorden, ook op de gsm van de speler. */
+async function renderPlayerDist(room) {
+  const el = $("pdist");
+  if (!el) return;
+  const n = (room.question?.opties || []).length;
+  if (!n) { el.classList.add("hidden"); return; }
+
+  const { data } = await sb
+    .from("answers")
+    .select("choice")
+    .eq("room_id", roomId)
+    .eq("question_index", room.question_index);
+
+  const counts = new Array(n).fill(0);
+  (data || []).forEach((a) => { if (a.choice >= 0 && a.choice < n) counts[a.choice]++; });
+  const total = counts.reduce((a, b) => a + b, 0);
+  if (!total) { el.classList.add("hidden"); return; }
+
+  const heeftJuist = room.correct_index !== null && room.correct_index !== undefined;
+  el.innerHTML =
+    `<p class="muted small">${total} antwoord${total === 1 ? "" : "en"}</p>` +
+    counts
+      .map((c, i) => {
+        const pct = Math.round((c / total) * 100);
+        const juist = heeftJuist && i === room.correct_index;
+        return `<div class="bar${juist ? " correct" : ""}">
+          <div class="fill" style="width:${pct}%"></div>
+          <span>${LETTERS[i]}${juist ? " ✓" : ""} — ${c} (${pct}%)</span>
+        </div>`;
+      })
+      .join("");
+  el.classList.remove("hidden");
 }
 
 /* ---------- Einde ---------- */
@@ -209,7 +260,7 @@ async function loadAnswers() {
   $("answers").innerHTML = answers
     .map((q, i) => `
       <div class="ans">
-        <p class="ans-q">${i + 1}. ${esc(q.vraag)}</p>
+        <p class="ans-q">${i + 1}. ${esc(q.vraag)}${q.juist == null ? ' <span class="peiling-tag">peiling</span>' : ""}</p>
         <ul class="ans-opts">
           ${q.opties
             .map((o, j) => `<li class="${j === q.juist ? "juist" : ""}"><b>${LETTERS[j]}</b> ${esc(o)}${j === q.juist ? " ✓" : ""}</li>`)

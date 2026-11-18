@@ -5,6 +5,8 @@ Formaat per vraag:
 - Een kop (`##`) met de vraagtekst.
 - De antwoorden als lijst. Zet `[x]` bij het juiste antwoord, `[ ]` bij de andere.
 - Optioneel: een regel die met `>` begint = de duiding die verschijnt bij het juiste antwoord.
+- **Peiling:** zet nergens een `[x]`. Dan heeft de vraag geen juist antwoord — geen punten,
+  maar wel de verdeling van de antwoorden, om over te discussiëren.
 
 ---
 
@@ -12,10 +14,10 @@ Formaat per vraag:
 
 - [ ] Minder dan 10%
 - [ ] 10 tot 30%
-- [x] 30 tot 60%
+- [ ] 30 tot 60%
 - [ ] Meer dan 60%
 
-> De meningen lopen sterk uiteen - daarom is dit een goede discussiestarter.
+> Peiling: hier is geen juist antwoord. Laat de balkjes zien en vraag wie er anders durft te denken.
 
 ## Wat kan een taalmodel vandaag het BEST?
 

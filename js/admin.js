@@ -134,7 +134,7 @@ function renderPreview(rows, filename) {
   }
   const bad = rows.filter((r) => r._bad).length;
   const good = rows.length - bad;
-  let html = `<p class="ok">${good} vraag/vragen gevonden${bad ? `, <span class="bad">${bad} zonder herkenbaar juist antwoord</span>` : ""}.</p><ol>`;
+  let html = `<p class="ok">${good} vraag/vragen gevonden${bad ? `, <span class="muted">${bad} zonder juist antwoord — die worden een peiling</span>` : ""}.</p><ol>`;
   rows.forEach((r) => {
     html += `<li>${esc(r.vraag)}<br><span class="muted">`;
     html += r.opties.map((o, i) => (i === r.juist ? `<strong>${LETTERS[i]}) ${esc(o)}</strong>` : `${LETTERS[i]}) ${esc(o)}`)).join(" &nbsp;·&nbsp; ");
@@ -262,7 +262,7 @@ function rowsToQuestions(rows) {
     if (opties.length < 2) continue;
     const juist = parseAnswer(r[juistCol], opties.length);
     const uitleg = uitlegCol >= 0 ? String(r[uitlegCol] ?? "").trim() : "";
-    out.push({ vraag, opties, juist: juist < 0 ? 0 : juist, uitleg, _bad: juist < 0 });
+    out.push({ vraag, opties, juist: juist < 0 ? null : juist, uitleg, _bad: juist < 0 });
   }
   return out;
 }
@@ -272,7 +272,7 @@ function parseMarkdown(md) {
   const out = [];
   for (const block of blocks) {
     const lines = block.split("\n").map((l) => l.trim()).filter(Boolean);
-    let vraag = "", opties = [], juist = 0, uitleg = "";
+    let vraag = "", opties = [], juist = null, uitleg = "";
     for (const line of lines) {
       const h = line.match(/^#{1,6}\s*(.+)$/);
       if (h) { vraag = h[1].trim(); continue; }
@@ -324,11 +324,16 @@ function cardHtml(q) {
     <label>Vraag</label>
     <input class="f-vraag" type="text" value="${esc(q.vraag || "")}" placeholder="Wat wil je vragen?">
 
+    <label class="consent peiling-toggle">
+      <input type="checkbox" class="f-peiling" ${q.juist == null ? "checked" : ""}>
+      <span>Peiling — geen juist antwoord (geen punten, wel de verdeling om over te discussiëren)</span>
+    </label>
+
     <label>Antwoorden — vink het juiste aan</label>
     <div class="opts">
       ${opts.map((o, i) => `
         <div class="optrow">
-          <input type="radio" name="juist-${id || "new"}" value="${i}" ${i === (q.juist ?? 0) ? "checked" : ""}>
+          <input type="radio" name="juist-${id || "new"}" value="${i}" ${i === (q.juist ?? 0) ? "checked" : ""} ${q.juist == null ? "disabled" : ""}>
           <b>${LETTERS[i]}</b>
           <input class="f-opt" type="text" value="${esc(o)}" placeholder="Antwoord ${LETTERS[i]}">
         </div>`).join("")}
@@ -355,11 +360,18 @@ $("list").addEventListener("click", async (e) => {
   }
 });
 
+$("list").addEventListener("change", (e) => {
+  if (!e.target.classList.contains("f-peiling")) return;
+  const card = e.target.closest(".qcard");
+  card.querySelectorAll('input[type="radio"]').forEach((r) => { r.disabled = e.target.checked; });
+});
+
 async function save(card, id) {
   const vraag = card.querySelector(".f-vraag").value.trim();
   const opties = [...card.querySelectorAll(".f-opt")].map((i) => i.value.trim());
+  const peiling = card.querySelector(".f-peiling")?.checked;
   const checked = card.querySelector('input[type="radio"]:checked');
-  const juist = checked ? Number(checked.value) : 0;
+  const juist = peiling ? null : checked ? Number(checked.value) : 0;
   const uitleg = card.querySelector(".f-uitleg").value.trim();
 
   if (!vraag) { status("Vul eerst de vraag in.", true); return; }

@@ -143,19 +143,26 @@ $("btn-reveal").onclick = async () => {
   if (error) { alert("Fout: " + error.message); return; }
 
   const q = questions[qIndex];
+  const heeftJuist = q.juist !== null && q.juist !== undefined;
+
   [...$("qopties").children].forEach((el, i) => {
+    if (!heeftJuist) return;  // peiling: niets is goed of fout
     el.classList.add(i === q.juist ? "juist" : "fout");
   });
 
   // Duiding
   const uitleg = (q.uitleg || "").trim();
   const el = $("uitleg");
-  if (uitleg) {
-    el.innerHTML = `<strong>${LETTERS[q.juist]}:</strong> ${esc(q.opties[q.juist])}<br><span class="muted">${esc(uitleg)}</span>`;
-    el.classList.remove("hidden");
+  if (heeftJuist) {
+    el.innerHTML = `<strong>${LETTERS[q.juist]}:</strong> ${esc(q.opties[q.juist])}${
+      uitleg ? `<br><span class="muted">${esc(uitleg)}</span>` : ""
+    }`;
   } else {
-    el.classList.add("hidden");
+    el.innerHTML = `<em>Peiling — geen juist antwoord.${uitleg ? "" : " Kijk naar de verdeling."}</em>${
+      uitleg ? `<br><span class="muted">${esc(uitleg)}</span>` : ""
+    }`;
   }
+  el.classList.remove("hidden");
 
   await renderHistogram();
   $("btn-reveal").classList.add("hidden");
@@ -171,13 +178,30 @@ async function renderHistogram() {
     .select("choice")
     .eq("room_id", roomId)
     .eq("question_index", q.idx);
+
   const n = (q.opties || []).length;
   const counts = new Array(n).fill(0);
   (data || []).forEach((a) => { if (a.choice >= 0 && a.choice < n) counts[a.choice]++; });
-  const max = Math.max(1, ...counts);
-  $("histogram").innerHTML = counts
-    .map((c, i) => `<div class="bar"><div class="fill" style="width:${(c / max) * 100}%"></div><span>${LETTERS[i]} — ${c}</span></div>`)
+
+  const total = counts.reduce((a, b) => a + b, 0);
+  const heeftJuist = q.juist !== null && q.juist !== undefined;
+
+  const kop = total
+    ? `${total} van ${players.length} speler${players.length === 1 ? "" : "s"} koos`
+    : "Nog geen antwoorden";
+
+  const bars = counts
+    .map((c, i) => {
+      const pct = total ? Math.round((c / total) * 100) : 0;
+      const juist = heeftJuist && i === q.juist;
+      return `<div class="bar${juist ? " correct" : ""}">
+        <div class="fill" style="width:${pct}%"></div>
+        <span>${LETTERS[i]}${juist ? " ✓" : ""} — ${c} (${pct}%)</span>
+      </div>`;
+    })
     .join("");
+
+  $("histogram").innerHTML = `<p class="muted small">${kop}</p>${bars}`;
   $("histogram").classList.remove("hidden");
 }
 
