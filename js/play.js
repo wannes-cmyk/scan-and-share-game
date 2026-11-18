@@ -1,5 +1,5 @@
 import { sb, esc } from "./supabase-client.js";
-import { loadBrand, config } from "./brand.js";
+import { loadBrand, config, effectiveAccent } from "./brand.js";
 import { drawCard, downloadCard, shareCard } from "./card.js";
 
 const $ = (id) => document.getElementById(id);
@@ -172,7 +172,7 @@ async function showEnd() {
     total: list.length,
     title: cfg.game_title,
     url: base,
-    accent: cfg.accent,
+    accent: effectiveAccent(),
   });
 
   $("btn-download").onclick = () => downloadCard($("card"));

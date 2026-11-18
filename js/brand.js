@@ -46,11 +46,24 @@ function watch() {
     .subscribe();
 }
 
+const PUNK_ACCENT = "#EA5758";
+
+/** De accentkleur die nu geldt (thema-afhankelijk). */
+export function effectiveAccent() {
+  return cfg.theme === "punk" ? PUNK_ACCENT : (cfg.accent || FALLBACK.accent);
+}
+
 /** Zet thema, accentkleur, titel en logo op de pagina. */
 export function apply() {
   const root = document.documentElement;
-  root.dataset.theme = cfg.theme || "wannes";
-  root.style.setProperty("--accent", cfg.accent || FALLBACK.accent);
+  const theme = cfg.theme || "wannes";
+  root.dataset.theme = theme;
+  // Het punk-thema heeft zijn eigen accentkleur; de instelbare accentkleur geldt voor AI wann.es.
+  if (theme === "wannes") {
+    root.style.setProperty("--accent", cfg.accent || FALLBACK.accent);
+  } else {
+    root.style.removeProperty("--accent");
+  }
 
   document.querySelectorAll("[data-brand-title]").forEach((el) => {
     el.textContent = cfg.game_title || FALLBACK.game_title;
