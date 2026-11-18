@@ -142,9 +142,22 @@ anon key — enkel via `host_leads(host_key)`.
 In het beheer, onderaan: **Laden** toont hoeveel adressen er zijn, **Download CSV** geeft een
 bestand met datum, naam, e-mail, score en room — klaar om in je mailingtool te importeren.
 
-Het automatisch *verzenden* van de antwoorden per mail zit er nog niet in: dat vraagt een
-Supabase Edge Function plus een e-mailprovider (bv. Resend). De deelnemer krijgt de
-antwoorden nu meteen als PDF; het adres dient voor de opvolging.
+**Antwoorden als PDF** in datzelfde paneel geeft de *neutrale* versie: alle vragen, het juiste
+antwoord en de duiding, zonder naam of score. Die gebruik je als bijlage wanneer je de lijst
+zelf aanschrijft.
+
+### De handmatige weg (werkt vandaag)
+
+1. Na het spel download je in het beheer de **CSV** met adressen en de **PDF** met antwoorden.
+2. Je stuurt de PDF naar de lijst — via je eigen mailingtool, met de score uit de CSV in de tekst.
+3. Klaar.
+
+De deelnemer heeft de antwoorden trouwens ook meteen: na het spel ziet hij ze op zijn scherm en
+kan hij ze zelf als PDF downloaden (met zijn eigen naam, score en positie erin).
+
+Het automatisch *verzenden* zit er niet in. Wil je dat de deelnemer de PDF in zijn mailbox
+krijgt zonder dat jij iets doet, dan vraagt dat een Supabase Edge Function plus een
+e-mailprovider (bv. Resend, gratis tier). Dat is een aparte stap.
 
 ## De backend (Supabase)
 

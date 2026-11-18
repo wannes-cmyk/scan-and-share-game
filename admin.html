@@ -109,14 +109,20 @@
         <div class="row">
           <button id="btn-leads" class="btn">Laden</button>
           <button id="btn-leads-csv" class="btn primary">Download CSV</button>
+          <button id="btn-answers-pdf" class="btn">Antwoorden als PDF</button>
         </div>
         <p id="leads-count" class="muted small" style="margin-top:10px"></p>
+        <p class="muted small">
+          De PDF is de <strong>neutrale versie</strong> — zonder naam of score, met alle vragen,
+          het juiste antwoord en de duiding. Die kan je als bijlage meesturen naar de lijst hierboven.
+        </p>
       </div>
 
     </section>
 
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script type="module" src="js/admin.js"></script>
 </body>

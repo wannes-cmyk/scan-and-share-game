@@ -1,6 +1,7 @@
 import { sb, esc } from "./supabase-client.js";
 import { loadBrand, config, effectiveAccent } from "./brand.js";
 import { drawCard, downloadCard, shareCard } from "./card.js";
+import { downloadAnswersPdf } from "./answers-pdf.js";
 
 const $ = (id) => document.getElementById(id);
 const LETTERS = "ABCD";
@@ -217,70 +218,17 @@ async function loadAnswers() {
         ${q.uitleg ? `<p class="ans-uitleg">${esc(q.uitleg)}</p>` : ""}
       </div>`)
     .join("");
-  $("btn-pdf").onclick = downloadAnswersPdf;
+  $("btn-pdf").onclick = downloadMyAnswersPdf;
 }
 
-function downloadAnswersPdf() {
-  if (!window.jspdf || !answers.length) return;
-  const { jsPDF } = window.jspdf;
-  const cfg = config();
-  const doc = new jsPDF({ unit: "pt", format: "a4" });
-  const W = doc.internal.pageSize.getWidth();
-  const H = doc.internal.pageSize.getHeight();
-  const M = 48;
-
-  // accentbalk
-  doc.setFillColor(250, 194, 19);
-  doc.rect(0, 0, W, 10, "F");
-
-  doc.setTextColor(20);
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(20);
-  doc.text(cfg.game_title || "Live quiz", M, 70);
-
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(11);
-  doc.setTextColor(120);
-  doc.text(`${playerName} — ${myScore} punten — ${myRank}e van ${myTotal}`, M, 92);
-  doc.text("AI wann.es · play.wann.es", M, 108);
-
-  let y = 150;
-  answers.forEach((q, i) => {
-    doc.setTextColor(20);
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(13);
-    const qLines = doc.splitTextToSize(`${i + 1}. ${q.vraag}`, W - 2 * M);
-    doc.text(qLines, M, y);
-    y += qLines.length * 17 + 6;
-
-    doc.setFontSize(11);
-    q.opties.forEach((o, j) => {
-      const correct = j === q.juist;
-      doc.setFont("helvetica", correct ? "bold" : "normal");
-      doc.setTextColor(correct ? 20 : 130);
-      const lines = doc.splitTextToSize(`${LETTERS[j]}) ${o}${correct ? "   ✓" : ""}`, W - 2 * M - 18);
-      doc.text(lines, M + 18, y);
-      y += lines.length * 15;
-    });
-
-    if (q.uitleg) {
-      doc.setFont("helvetica", "italic");
-      doc.setTextColor(90);
-      const uLines = doc.splitTextToSize(q.uitleg, W - 2 * M - 18);
-      y += 4;
-      doc.text(uLines, M + 18, y);
-      y += uLines.length * 15;
-    }
-
-    y += 22;
-    if (y > H - 90) {
-      doc.addPage();
-      y = 70;
-    }
+function downloadMyAnswersPdf() {
+  downloadAnswersPdf({
+    title: config().game_title,
+    url: location.origin + location.pathname.replace(/play\.html$/, ""),
+    accentHex: effectiveAccent(),
+    answers,
+    player: { name: playerName, score: myScore, rank: myRank, total: myTotal },
   });
-
-  const safe = String(cfg.game_title || "quiz").replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "").toLowerCase();
-  doc.save(`antwoorden-${safe || "quiz"}.pdf`);
 }
 
 /* ---------- E-mailadres ---------- */

@@ -1,5 +1,6 @@
 import { sb, esc } from "./supabase-client.js";
 import { loadBrand, config } from "./brand.js";
+import { downloadAnswersPdf } from "./answers-pdf.js";
 
 const $ = (id) => document.getElementById(id);
 const LETTERS = "ABCD";
@@ -441,6 +442,24 @@ $("btn-leads-csv").onclick = async () => {
   a.download = `leads-${new Date().toISOString().slice(0, 10)}.csv`;
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+};
+
+/* ---------- Antwoorden als PDF (neutrale versie, om zelf door te sturen) ---------- */
+
+$("btn-answers-pdf").onclick = () => {
+  const cfg = config();
+  const ok = downloadAnswersPdf({
+    title: cfg.game_title,
+    url: "play.wann.es",
+    accentHex: cfg.accent || "#FAC213",
+    answers: questions.map((q) => ({
+      vraag: q.vraag,
+      opties: q.opties,
+      juist: q.juist,
+      uitleg: q.uitleg,
+    })),
+  });
+  if (!ok) status("Geen vragen geladen om een PDF van te maken.", true);
 };
 
 /* ---------- Start ---------- */
