@@ -254,6 +254,35 @@ body.play .screen { width: 100%; }
   display: block;
 }
 
+/* ---------- Antwoorden + e-mailveld (na het spel) ---------- */
+.answers { display: grid; gap: 18px; margin-top: 12px; }
+.ans-q { font-weight: 700; margin: 0 0 6px; font-size: 16px; }
+.ans-opts { list-style: none; padding: 0; margin: 0; display: grid; gap: 3px; }
+.ans-opts li { color: var(--muted); font-size: 15px; }
+.ans-opts li.juist { color: var(--fg); font-weight: 700; }
+.ans-opts b { color: var(--accent); margin-right: 6px; }
+.ans-uitleg {
+  color: var(--muted);
+  font-size: 14px;
+  font-style: italic;
+  margin: 8px 0 0;
+  border-left: 3px solid var(--accent);
+  padding-left: 10px;
+}
+.consent {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 2px 0 14px;
+  font-size: 15px;
+  color: var(--muted);
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 400;
+}
+.consent input { width: auto; margin: 3px 0 0; accent-color: var(--accent); flex: 0 0 auto; }
+.panel input[type=email] { max-width: 100%; }
+
 /* ---------- Admin ---------- */
 body.admin #app { padding: 4vh 5vw; max-width: 940px; margin: 0 auto; }
 .admin-head { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 22px; }
@@ -264,6 +293,7 @@ body.admin #app { padding: 4vh 5vw; max-width: 940px; margin: 0 auto; }
 
 .panel { background: var(--panel); border: 2px solid var(--border); border-radius: var(--radius); padding: 22px; margin-bottom: 22px; }
 .panel h2 { font-size: 22px; margin-bottom: 6px; }
+.panel h3 { font-family: var(--display); text-transform: var(--head-transform); letter-spacing: var(--head-spacing); font-size: 18px; margin: 0 0 8px; }
 .panel .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: end; }
 .panel .grid2 > div { display: flex; flex-direction: column; }
 .panel label { display: block; font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 12px 0 6px; }

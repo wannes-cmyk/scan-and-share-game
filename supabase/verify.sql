@@ -5,7 +5,7 @@
 select 'tabel: ' || t as onderdeel,
        case when to_regclass('public.' || t) is null then 'ONTBREEKT' else 'ok' end as status
 from (values
-  ('settings'), ('questions'), ('rooms'), ('players'), ('answers'), ('game_config')
+  ('settings'), ('questions'), ('rooms'), ('players'), ('answers'), ('game_config'), ('leads')
 ) as x(t)
 
 union all
@@ -26,7 +26,10 @@ from (values
   ('host_delete_question'),
   ('host_move_question'),
   ('host_set_config'),
-  ('host_import_questions')
+  ('host_import_questions'),
+  ('get_answers'),
+  ('register_lead'),
+  ('host_leads')
 ) as v(fn)
 left join pg_proc p on p.proname = v.fn
 

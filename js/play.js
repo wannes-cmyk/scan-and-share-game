@@ -152,6 +152,11 @@ function showReveal(room) {
 
 /* ---------- Einde ---------- */
 
+let answers = [];
+let myScore = 0;
+let myRank = 1;
+let myTotal = 1;
+
 async function showEnd() {
   show("end");
   const { data } = await sb
@@ -165,19 +170,150 @@ async function showEnd() {
   const base = location.origin + location.pathname.replace(/play\.html$/, "");
   const cfg = config();
 
+  myScore = me.score;
+  myRank = rank || list.length || 1;
+  myTotal = list.length;
+
   await drawCard($("card"), {
     name: playerName,
-    score: me.score,
-    rank: rank || list.length || 1,
-    total: list.length,
+    score: myScore,
+    rank: myRank,
+    total: myTotal,
     title: cfg.game_title,
     url: base,
     accent: effectiveAccent(),
   });
 
   $("btn-download").onclick = () => downloadCard($("card"));
-  $("btn-share").onclick = () => shareCard($("card"), `${playerName} — ${me.score} punten in ${cfg.game_title}`);
+  $("btn-share").onclick = () => shareCard($("card"), `${playerName} — ${myScore} punten in ${cfg.game_title}`);
+
+  await loadAnswers();
 }
+
+/* ---------- De juiste antwoorden ---------- */
+
+async function loadAnswers() {
+  const { data, error } = await sb.rpc("get_answers", { p_room_id: roomId });
+  if (error) {
+    $("answers").innerHTML = `<p class="muted">De antwoorden zijn nog niet beschikbaar.</p>`;
+    $("btn-pdf").disabled = true;
+    return;
+  }
+  answers = Array.isArray(data) ? data : [];
+  if (!answers.length) {
+    $("answers").innerHTML = `<p class="muted">Geen antwoorden gevonden.</p>`;
+    $("btn-pdf").disabled = true;
+    return;
+  }
+  $("answers").innerHTML = answers
+    .map((q, i) => `
+      <div class="ans">
+        <p class="ans-q">${i + 1}. ${esc(q.vraag)}</p>
+        <ul class="ans-opts">
+          ${q.opties
+            .map((o, j) => `<li class="${j === q.juist ? "juist" : ""}"><b>${LETTERS[j]}</b> ${esc(o)}${j === q.juist ? " ✓" : ""}</li>`)
+            .join("")}
+        </ul>
+        ${q.uitleg ? `<p class="ans-uitleg">${esc(q.uitleg)}</p>` : ""}
+      </div>`)
+    .join("");
+  $("btn-pdf").onclick = downloadAnswersPdf;
+}
+
+function downloadAnswersPdf() {
+  if (!window.jspdf || !answers.length) return;
+  const { jsPDF } = window.jspdf;
+  const cfg = config();
+  const doc = new jsPDF({ unit: "pt", format: "a4" });
+  const W = doc.internal.pageSize.getWidth();
+  const H = doc.internal.pageSize.getHeight();
+  const M = 48;
+
+  // accentbalk
+  doc.setFillColor(250, 194, 19);
+  doc.rect(0, 0, W, 10, "F");
+
+  doc.setTextColor(20);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(20);
+  doc.text(cfg.game_title || "Live quiz", M, 70);
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(11);
+  doc.setTextColor(120);
+  doc.text(`${playerName} — ${myScore} punten — ${myRank}e van ${myTotal}`, M, 92);
+  doc.text("AI wann.es · play.wann.es", M, 108);
+
+  let y = 150;
+  answers.forEach((q, i) => {
+    doc.setTextColor(20);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(13);
+    const qLines = doc.splitTextToSize(`${i + 1}. ${q.vraag}`, W - 2 * M);
+    doc.text(qLines, M, y);
+    y += qLines.length * 17 + 6;
+
+    doc.setFontSize(11);
+    q.opties.forEach((o, j) => {
+      const correct = j === q.juist;
+      doc.setFont("helvetica", correct ? "bold" : "normal");
+      doc.setTextColor(correct ? 20 : 130);
+      const lines = doc.splitTextToSize(`${LETTERS[j]}) ${o}${correct ? "   ✓" : ""}`, W - 2 * M - 18);
+      doc.text(lines, M + 18, y);
+      y += lines.length * 15;
+    });
+
+    if (q.uitleg) {
+      doc.setFont("helvetica", "italic");
+      doc.setTextColor(90);
+      const uLines = doc.splitTextToSize(q.uitleg, W - 2 * M - 18);
+      y += 4;
+      doc.text(uLines, M + 18, y);
+      y += uLines.length * 15;
+    }
+
+    y += 22;
+    if (y > H - 90) {
+      doc.addPage();
+      y = 70;
+    }
+  });
+
+  const safe = String(cfg.game_title || "quiz").replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "").toLowerCase();
+  doc.save(`antwoorden-${safe || "quiz"}.pdf`);
+}
+
+/* ---------- E-mailadres ---------- */
+
+function leadMsg(msg, isError = false) {
+  const el = $("lead-msg");
+  el.textContent = msg;
+  el.classList.toggle("error", isError);
+}
+
+$("btn-lead").onclick = async () => {
+  const email = $("lead-email").value.trim();
+  const consent = $("lead-consent").checked;
+  leadMsg("");
+  if (!email) { leadMsg("Vul je e-mailadres in.", true); return; }
+  if (!consent) { leadMsg("Vink eerst het vakje aan.", true); return; }
+
+  $("btn-lead").disabled = true;
+  const { error } = await sb.rpc("register_lead", {
+    p_room_id: roomId,
+    p_player_id: playerId,
+    p_email: email,
+    p_consent: consent,
+  });
+  if (error) {
+    leadMsg("Fout: " + error.message, true);
+    $("btn-lead").disabled = false;
+    return;
+  }
+  leadMsg("Top, je hoort van ons! ✓");
+  $("lead-email").disabled = true;
+  $("lead-consent").disabled = true;
+};
 
 /* ---------- Start ---------- */
 

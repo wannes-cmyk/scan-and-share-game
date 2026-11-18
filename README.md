@@ -133,6 +133,19 @@ Voorbeelden staan in `templates/` (er zijn downloadlinks in de admin).
 
 Er zijn 4 antwoordopties per vraag in het beheerscherm (het spel gaat daarvan uit).
 
+### E-mailadressen
+
+Na het spel kan elke deelnemer zijn e-mailadres achterlaten (met een expliciete
+toestemmingsvink). Die adressen staan in de tabel `leads` en zijn **niet** leesbaar met de
+anon key — enkel via `host_leads(host_key)`.
+
+In het beheer, onderaan: **Laden** toont hoeveel adressen er zijn, **Download CSV** geeft een
+bestand met datum, naam, e-mail, score en room — klaar om in je mailingtool te importeren.
+
+Het automatisch *verzenden* van de antwoorden per mail zit er nog niet in: dat vraagt een
+Supabase Edge Function plus een e-mailprovider (bv. Resend). De deelnemer krijgt de
+antwoorden nu meteen als PDF; het adres dient voor de opvolging.
+
 ## De backend (Supabase)
 
 **Opzetten of bijwerken:** plak de inhoud van `supabase/install-all.sql` in de SQL-editor en

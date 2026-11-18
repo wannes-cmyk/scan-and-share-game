@@ -403,6 +403,46 @@ $("btn-add").onclick = () => {
   last.querySelector(".f-vraag").focus();
 };
 
+/* ---------- E-mailadressen ---------- */
+
+let leads = [];
+
+$("btn-leads").onclick = loadLeads;
+
+async function loadLeads() {
+  const { data, error } = await sb.rpc("host_leads", { p_host_key: HOST_KEY });
+  if (error) { status("Fout: " + error.message, true); return; }
+  leads = data || [];
+  $("leads-count").textContent = leads.length
+    ? `${leads.length} adres(sen) — laatste: ${new Date(leads[0].created_at).toLocaleString("nl-BE")}`
+    : "Nog geen adressen.";
+  if (leads.length) status(`${leads.length} adres(sen) geladen ✓`);
+}
+
+$("btn-leads-csv").onclick = async () => {
+  if (!leads.length) await loadLeads();
+  if (!leads.length) { status("Nog geen adressen om te downloaden.", true); return; }
+
+  const header = ["datum", "naam", "email", "score", "room"];
+  const rows = leads.map((l) => [
+    new Date(l.created_at).toISOString().slice(0, 10),
+    l.name || "",
+    l.email,
+    l.score ?? "",
+    l.room_id || "",
+  ]);
+  const csv = [header, ...rows]
+    .map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(","))
+    .join("\n");
+
+  const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `leads-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+};
+
 /* ---------- Start ---------- */
 
 loadBrand();
