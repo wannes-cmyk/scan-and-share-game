@@ -30,7 +30,7 @@
   --bg: #f1efe8;              /* gebroken wit: fotokopie-papier */
   --paper: #ffffff;
   --bg-glow: none;
-  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23g)' opacity='0.16'/%3E%3C/svg%3E");
+  --grain: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAACXBIWXMAAAABAAAAAQBPJcTWAAADAFBMVEUAAAAkAABIAABsAACQAAC0AADYAAD8AAAAJAAkJABIJABsJACQJAC0JADYJAD8JAAASAAkSABISABsSACQSAC0SADYSAD8SAAAbAAkbABIbABsbACQbAC0bADYbAD8bAAAkAAkkABIkABskACQkAC0kADYkAD8kAAAtAAktABItABstACQtAC0tADYtAD8tAAA2AAk2ABI2ABs2ACQ2AC02ADY2AD82AAA/AAk/ABI/ABs/ACQ/AC0/ADY/AD8/AAAAFUkAFVIAFVsAFWQAFW0AFXYAFX8AFUAJFUkJFVIJFVsJFWQJFW0JFXYJFX8JFUASFUkSFVISFVsSFWQSFW0SFXYSFX8SFUAbFUkbFVIbFVsbFWQbFW0bFXYbFX8bFUAkFUkkFVIkFVskFWQkFW0kFXYkFX8kFUAtFUktFVItFVstFWQtFW0tFXYtFX8tFUA2FUk2FVI2FVs2FWQ2FW02FXY2FX82FUA/FUk/FVI/FVs/FWQ/FW0/FXY/FX8/FUAAKokAKpIAKpsAKqQAKq0AKrYAKr8AKoAJKokJKpIJKpsJKqQJKq0JKrYJKr8JKoASKokSKpISKpsSKqQSKq0SKrYSKr8SKoAbKokbKpIbKpsbKqQbKq0bKrYbKr8bKoAkKokkKpIkKpskKqQkKq0kKrYkKr8kKoAtKoktKpItKpstKqQtKq0tKrYtKr8tKoA2Kok2KpI2Kps2KqQ2Kq02KrY2Kr82KoA/Kok/KpI/Kps/KqQ/Kq0/KrY/Kr8/KoAAP8kAP9IAP9sAP+QAP+0AP/YAP/8AP8AJP8kJP9IJP9sJP+QJP+0JP/YJP/8JP8ASP8kSP9ISP9sSP+QSP+0SP/YSP/8SP8AbP8kbP9IbP9sbP+QbP+0bP/YbP/8bP8AkP8kkP9IkP9skP+QkP+0kP/YkP/8kP8AtP8ktP9ItP9stP+QtP+0tP/YtP/8tP8A2P8k2P9I2P9s2P+Q2P+02P/Y2P/82P8A/P8k/P9I/P9s/P+Q/P+0/P/Y/P/8/P+BTFLuAAACMElEQVR4nC1TO5bbMAzkrdVkkyOpWrExiOOkWrMxiUbEZIaK37NMkyDmg1EBRqICASQw9XDo48EtnAU62FtmfPysxfJhrXqPmBUsyIbo7+i6E9xldb38pb7eWdBhoU+vhGHbQAMuX3xWD5RAPRperFu6c/dOkEVO9aiZZuxwwH1ZsKDW/PRYKxOrBv4MWLIDXoHMzm/ilQT5MiMXxBt5ikPiHSzYN7+TF77dJgXFFGbJgY9EhmTHWJ7yoP3+9tSqSeaaxOc5RW1Ppnszb1QzxSFgXW5ZD1npKvPtY9QLUXoYb89LxNq61DbcVUaelUbNedI6E595ePR7UQ/+xnaY5WUPZhCTAzsgLQi6gU515J/FzDeeRpdJaqcOv3BuWeyQpllrBLzJAZw85tpObdWpWVij6/BqVrk7s7UnE9e2p9Ro+kd5psWcE0Z+uSF/WKChXn/mEyJOfE5GgkJFy/1R4fTsuqhA88e7d0Rrsf1gHmhy/dWoDUdlKDgKakFjXJgP1FpyOWyvTyaP/ZQ15yh8LffqZZBX9QF0NwwiLd4e7HQTZBGCukata6C3zNnkcAokF139yCjl783uNJm/suuWRaKsyRV6j/9W5rO65QHfCopmZgrR0r52eljRWpfpYjrhzOBSogi7bg4gf8ihQzgE5gt0p91lj0zGcyOHyws6d5wSPta2Wqf0PqoKXBBOgxg44BMPSQ2YjS9izo5G1x+Z6lpErz+JGXp1cGoqIshoUO4/LYep3rYKfekAAAAASUVORK5CYII=");
   --panel: #ffffff;
   --panel-2: #e8e5db;
   --fg: #000000;
@@ -372,8 +372,8 @@ body.admin #app { padding: 4vh 5vw; max-width: 940px; margin: 0 auto; }
 [data-theme="punk"] body {
   background-color: var(--bg);
   background-image: var(--grain), var(--grain);
-  background-size: 120px 120px, 260px 260px;
-  background-position: 0 0, 40px 60px;
+  background-size: 64px 64px, 144px 144px;
+  background-position: 0 0, 37px 61px;
 }
 
 /* Ransomnote-koppen: stroken papier, licht scheef, harde schaduw.
