@@ -1,5 +1,5 @@
 import { sb, esc } from "./supabase-client.js";
-import { ANSWER_SECONDS } from "./config.js";
+import { loadBrand, config } from "./brand.js";
 import QRCode from "https://esm.sh/qrcode@1.5.3";
 
 const $ = (id) => document.getElementById(id);
@@ -32,7 +32,7 @@ $("btn-start").onclick = async () => {
   try {
     const { data, error } = await sb.rpc("get_questions", { p_host_key: key });
     if (error) throw error;
-    if (!data || !data.length) throw new Error("Geen vragen gevonden in de tabel 'questions'.");
+    if (!data || !data.length) throw new Error("Geen vragen gevonden. Voeg er toe via 'Vragen beheren'.");
     questions = data;
     HOST_KEY = key;
     localStorage.setItem("host_key", key);
@@ -100,13 +100,14 @@ $("btn-question").onclick = () => startQuestion(0);
 async function startQuestion(i) {
   qIndex = i;
   const q = questions[i];
+  const seconds = Number(config().answer_seconds) || 20;
   const { error } = await sb.rpc("host_set_question", {
-    p_host_key: HOST_KEY, p_room_id: roomId, p_index: q.idx, p_seconds: ANSWER_SECONDS,
+    p_host_key: HOST_KEY, p_room_id: roomId, p_index: q.idx, p_seconds: seconds,
   });
   if (error) { alert("Fout: " + error.message); return; }
   show("quiz");
   renderQuestion(q);
-  startTimer(ANSWER_SECONDS);
+  startTimer(seconds);
 }
 
 function renderQuestion(q) {
@@ -117,6 +118,8 @@ function renderQuestion(q) {
     .join("");
   $("histogram").classList.add("hidden");
   $("histogram").innerHTML = "";
+  $("uitleg").classList.add("hidden");
+  $("uitleg").innerHTML = "";
   $("btn-reveal").classList.remove("hidden");
   $("btn-next").classList.add("hidden");
 }
@@ -138,10 +141,22 @@ $("btn-reveal").onclick = async () => {
   $("timer").textContent = "0s";
   const { error } = await sb.rpc("host_reveal", { p_host_key: HOST_KEY, p_room_id: roomId });
   if (error) { alert("Fout: " + error.message); return; }
-  const correct = questions[qIndex].juist;
+
+  const q = questions[qIndex];
   [...$("qopties").children].forEach((el, i) => {
-    el.classList.add(i === correct ? "juist" : "fout");
+    el.classList.add(i === q.juist ? "juist" : "fout");
   });
+
+  // Duiding
+  const uitleg = (q.uitleg || "").trim();
+  const el = $("uitleg");
+  if (uitleg) {
+    el.innerHTML = `<strong>${LETTERS[q.juist]}:</strong> ${esc(q.opties[q.juist])}<br><span class="muted">${esc(uitleg)}</span>`;
+    el.classList.remove("hidden");
+  } else {
+    el.classList.add("hidden");
+  }
+
   await renderHistogram();
   $("btn-reveal").classList.add("hidden");
   const next = $("btn-next");
@@ -156,8 +171,9 @@ async function renderHistogram() {
     .select("choice")
     .eq("room_id", roomId)
     .eq("question_index", q.idx);
-  const counts = [0, 0, 0, 0];
-  (data || []).forEach((a) => { if (a.choice >= 0 && a.choice < 4) counts[a.choice]++; });
+  const n = (q.opties || []).length;
+  const counts = new Array(n).fill(0);
+  (data || []).forEach((a) => { if (a.choice >= 0 && a.choice < n) counts[a.choice]++; });
   const max = Math.max(1, ...counts);
   $("histogram").innerHTML = counts
     .map((c, i) => `<div class="bar"><div class="fill" style="width:${(c / max) * 100}%"></div><span>${LETTERS[i]} — ${c}</span></div>`)
@@ -183,3 +199,7 @@ $("btn-newgame").onclick = async () => {
   qIndex = 0;
   startLobby();
 };
+
+/* ---------- Start ---------- */
+
+loadBrand({ subscribe: true });

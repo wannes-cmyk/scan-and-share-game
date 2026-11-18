@@ -1,38 +1,110 @@
 <!doctype html>
-<html lang="nl">
+<html lang="nl" data-theme="wannes">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Live Quiz — Vragen beheren</title>
+  <title>Live Quiz — Beheer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body class="admin">
   <div id="app">
 
-    <header class="admin-head">
-      <h1>Vragen beheren</h1>
-      <nav>
-        <a class="btn" href="host.html">Naar het host-scherm</a>
-        <a class="btn" href="index.html">Start</a>
+    <div class="brandbar">
+      <a class="brand" href="index.html">
+        <span class="brand-mark"><img src="assets/logo.webp" alt=""></span>
+        <span class="brand-name" data-brand-name>AI wann.es</span>
+      </a>
+      <nav style="display:flex; gap:10px">
+        <a href="host.html" class="btn small">Host-scherm</a>
+        <a href="index.html" class="btn small">Start</a>
       </nav>
-    </header>
+    </div>
 
     <section id="setup" class="screen">
+      <h1>Vragen beheren</h1>
       <p class="muted">Voer de host-key in (dezelfde als op het host-scherm). Die wordt lokaal onthouden.</p>
       <input id="hostkey" type="password" placeholder="host-key" autocomplete="off">
-      <button id="btn-load" class="btn primary">Vragen laden</button>
+      <button id="btn-load" class="btn primary">Laden</button>
       <p id="setup-error" class="error"></p>
     </section>
 
     <section id="editor" class="screen hidden">
+
       <p id="status" class="status"></p>
+
+      <div class="panel">
+        <h2>Spelinstellingen</h2>
+        <p class="muted small">Geldt voor het volgende spel. Wijzigingen zijn meteen actief.</p>
+
+        <div class="grid2">
+          <div>
+            <label for="cfg-seconds">Tijd per vraag (seconden)</label>
+            <input id="cfg-seconds" type="number" min="5" max="300" step="1">
+          </div>
+          <div>
+            <label for="cfg-title">Titel (op de eindkaart)</label>
+            <input id="cfg-title" type="text">
+          </div>
+        </div>
+
+        <label>Stijl</label>
+        <div class="switch" id="theme-switch">
+          <button type="button" data-theme-value="wannes" aria-pressed="true">AI wann.es</button>
+          <button type="button" data-theme-value="punk" aria-pressed="false">Punk</button>
+        </div>
+
+        <div style="margin-top:18px">
+          <button id="btn-save-config" class="btn primary">Instellingen opslaan</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Vragen importeren</h2>
+        <p class="muted small">
+          Ondersteund: <strong>CSV</strong>, <strong>Excel</strong> (.xlsx) en <strong>Markdown</strong>.
+          Kolommen (CSV/Excel): <code>vraag, a, b, c, d, juist, uitleg</code> — <code>juist</code> is A/B/C/D of 1-4.
+          Markdown: <code>## vraag</code>, opties als <code>- [x]</code> / <code>- [ ]</code>, duiding op een regel die met <code>&gt;</code> begint.
+        </p>
+
+        <div class="dropzone" id="dropzone">
+          Kies een bestand of sleep het hier
+          <input type="file" id="file" accept=".csv,.md,.markdown,.txt,.xlsx,.xls" hidden>
+        </div>
+
+        <div id="import-preview" class="import-preview"></div>
+
+        <div id="import-actions" class="hidden" style="margin-top:16px">
+          <label style="display:flex; align-items:center; gap:8px; text-transform:none; letter-spacing:0">
+            <input type="radio" name="import-mode" value="append" checked style="width:auto; margin:0">
+            Toevoegen aan de bestaande vragen
+          </label>
+          <label style="display:flex; align-items:center; gap:8px; text-transform:none; letter-spacing:0">
+            <input type="radio" name="import-mode" value="replace" style="width:auto; margin:0">
+            Bestaande vragen vervangen
+          </label>
+          <button id="btn-import" class="btn primary" style="margin-top:12px">Importeren</button>
+        </div>
+
+        <p class="muted small" style="margin-top:14px">
+          Voorbeeldbestanden:
+          <a href="templates/voorbeeld-vragen.csv" download>CSV</a> ·
+          <a href="templates/voorbeeld-vragen.md" download>Markdown</a>
+        </p>
+      </div>
+
+      <h2 style="margin-top:32px">Vragen</h2>
       <p class="muted small">De volgorde hieronder is de volgorde in het spel. Het juiste antwoord is wat de spelers <em>niet</em> te zien krijgen.</p>
       <div id="list"></div>
       <button id="btn-add" class="btn primary big">+ Nieuwe vraag</button>
+
     </section>
 
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script type="module" src="js/admin.js"></script>
 </body>
 </html>

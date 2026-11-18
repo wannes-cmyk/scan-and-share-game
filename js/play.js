@@ -1,5 +1,5 @@
 import { sb, esc } from "./supabase-client.js";
-import { GAME_TITLE } from "./config.js";
+import { loadBrand, config } from "./brand.js";
 import { drawCard, downloadCard, shareCard } from "./card.js";
 
 const $ = (id) => document.getElementById(id);
@@ -69,9 +69,6 @@ function subscribe() {
     .on("postgres_changes",
       { event: "UPDATE", schema: "public", table: "rooms", filter: `id=eq.${roomId}` },
       (p) => applyRoom(p.new))
-    .on("postgres_changes",
-      { event: "*", schema: "public", table: "players", filter: `id=eq.${playerId}` },
-      (p) => { if (p.new) updateScore(p.new.score); })
     .subscribe();
 }
 
@@ -108,6 +105,8 @@ function showQuestion(room) {
     b.onclick = () => answer(room, Number(b.dataset.i));
   });
   $("panswered").textContent = answered !== null ? "Antwoord ontvangen ✓" : "";
+  $("puitleg").classList.add("hidden");
+  $("puitleg").innerHTML = "";
   startTimer(room.deadline);
 }
 
@@ -126,7 +125,6 @@ async function answer(room, choice) {
   }
   localStorage.setItem("ans_" + roomId + "_" + room.question_index, String(choice));
   $("panswered").textContent = "Antwoord ontvangen ✓";
-  updateScore();
 }
 
 function showReveal(room) {
@@ -140,15 +138,15 @@ function showReveal(room) {
   $("ptimer").textContent = "";
   $("panswered").textContent =
     mine !== null && Number(mine) === room.correct_index ? "Juist! 🎉" : mine !== null ? "Helaas." : "Geen antwoord.";
-  updateScore();
-}
 
-async function updateScore() {
-  if (!playerId) return;
-  const { data } = await sb.from("players").select("score").eq("id", playerId).maybeSingle();
-  if (data) {
-    $("score").textContent = data.score;
-    $("pscore").textContent = data.score;
+  // Duiding van de host
+  const uitleg = (room.question?.uitleg || "").trim();
+  const el = $("puitleg");
+  if (uitleg) {
+    el.innerHTML = `<strong>${esc(uitleg)}</strong>`;
+    el.classList.remove("hidden");
+  } else {
+    el.classList.add("hidden");
   }
 }
 
@@ -165,14 +163,22 @@ async function showEnd() {
   const rank = list.findIndex((p) => p.id === playerId) + 1;
   const me = list.find((p) => p.id === playerId) || { score: 0 };
   const base = location.origin + location.pathname.replace(/play\.html$/, "");
+  const cfg = config();
+
   await drawCard($("card"), {
     name: playerName,
     score: me.score,
     rank: rank || list.length || 1,
     total: list.length,
-    title: GAME_TITLE,
+    title: cfg.game_title,
     url: base,
+    accent: cfg.accent,
   });
+
   $("btn-download").onclick = () => downloadCard($("card"));
-  $("btn-share").onclick = () => shareCard($("card"), `${playerName} — ${me.score} punten in ${GAME_TITLE}`);
+  $("btn-share").onclick = () => shareCard($("card"), `${playerName} — ${me.score} punten in ${cfg.game_title}`);
 }
+
+/* ---------- Start ---------- */
+
+loadBrand({ subscribe: true });

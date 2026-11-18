@@ -1,12 +1,22 @@
 <!doctype html>
-<html lang="nl">
+<html lang="nl" data-theme="wannes">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <title>Live Quiz — Doe mee</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body class="play">
+
+  <div class="brandbar">
+    <a class="brand" href="index.html">
+      <span class="brand-mark"><img src="assets/logo.webp" alt=""></span>
+      <span class="brand-name" data-brand-name>AI wann.es</span>
+    </a>
+  </div>
 
   <section id="join" class="screen">
     <h1>Doe mee</h1>
@@ -19,7 +29,6 @@
   <section id="wait" class="screen hidden">
     <h1 id="waittitle">Welkom</h1>
     <p class="muted">Wachten tot de host start…</p>
-    <p class="score-line">Score: <b id="score">0</b></p>
   </section>
 
   <section id="question" class="screen hidden">
@@ -29,7 +38,7 @@
     <h2 id="pqvraag" class="question"></h2>
     <div id="popties" class="popties"></div>
     <p id="panswered" class="answered"></p>
-    <p class="score-line">Score: <b id="pscore">0</b></p>
+    <div id="puitleg" class="uitleg hidden"></div>
   </section>
 
   <section id="end" class="screen hidden">

@@ -1,13 +1,24 @@
 <!doctype html>
-<html lang="nl">
+<html lang="nl" data-theme="wannes">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Live Quiz — Host</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body class="host">
   <div id="app">
+
+    <div class="brandbar">
+      <a class="brand" href="index.html">
+        <span class="brand-mark"><img src="assets/logo.webp" alt=""></span>
+        <span class="brand-name" data-brand-name>AI wann.es</span>
+      </a>
+      <a href="admin.html">Vragen beheren</a>
+    </div>
 
     <section id="setup" class="screen">
       <h1>Host — Live Quiz</h1>
@@ -40,6 +51,7 @@
       </div>
       <h1 id="qvraag" class="question"></h1>
       <div id="qopties" class="opties"></div>
+      <div id="uitleg" class="uitleg hidden"></div>
       <div id="histogram" class="histogram hidden"></div>
       <div class="controls">
         <button id="btn-reveal" class="btn primary">Toon antwoord</button>
@@ -54,7 +66,6 @@
     </section>
 
   </div>
-
   <script type="module" src="js/host.js"></script>
 </body>
 </html>

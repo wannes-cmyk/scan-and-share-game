@@ -1,4 +1,5 @@
 import { sb, esc } from "./supabase-client.js";
+import { loadBrand, config } from "./brand.js";
 
 const $ = (id) => document.getElementById(id);
 const LETTERS = "ABCD";
@@ -7,6 +8,8 @@ const OPTION_COUNT = 4;   // het spel gaat uit van 4 antwoordopties
 let HOST_KEY = localStorage.getItem("host_key") || "";
 let questions = [];
 let statusTimer = null;
+let cfg = { answer_seconds: 20, theme: "wannes", game_title: "" };
+let parsedImport = null;
 
 function show(id) {
   document.querySelectorAll(".screen").forEach((s) => s.classList.add("hidden"));
@@ -18,7 +21,7 @@ function status(msg, isError = false) {
   el.textContent = msg;
   el.classList.toggle("error", isError);
   clearTimeout(statusTimer);
-  if (msg && !isError) statusTimer = setTimeout(() => (el.textContent = ""), 2500);
+  if (msg && !isError) statusTimer = setTimeout(() => (el.textContent = ""), 3000);
 }
 
 /* ---------- Laden ---------- */
@@ -35,6 +38,7 @@ async function load(key) {
   questions = data || [];
   show("editor");
   render();
+  await loadConfig();
 }
 
 async function reload() {
@@ -45,12 +49,260 @@ async function reload() {
   }
 }
 
-/* ---------- Weergeven ---------- */
+/* ---------- Config ---------- */
+
+async function loadConfig() {
+  const { data } = await sb.from("game_config").select("*").eq("id", 1).maybeSingle();
+  if (data) cfg = { ...cfg, ...data };
+  $("cfg-seconds").value = cfg.answer_seconds ?? 20;
+  $("cfg-title").value = cfg.game_title ?? "";
+  setThemeButtons(cfg.theme || "wannes");
+}
+
+function setThemeButtons(theme) {
+  document.querySelectorAll("#theme-switch button").forEach((b) => {
+    b.setAttribute("aria-pressed", String(b.dataset.themeValue === theme));
+  });
+}
+
+$("theme-switch").addEventListener("click", (e) => {
+  const b = e.target.closest("button[data-theme-value]");
+  if (!b) return;
+  cfg.theme = b.dataset.themeValue;
+  setThemeButtons(cfg.theme);
+  // meteen tonen in de admin zelf
+  document.documentElement.dataset.theme = cfg.theme;
+});
+
+$("btn-save-config").onclick = async () => {
+  const seconds = Number($("cfg-seconds").value) || 20;
+  const theme = cfg.theme || "wannes";
+  const title = $("cfg-title").value.trim();
+  const { error } = await sb.rpc("host_set_config", {
+    p_host_key: HOST_KEY,
+    p_answer_seconds: seconds,
+    p_theme: theme,
+    p_game_title: title || null,
+    p_accent: null,
+  });
+  if (error) { status("Fout: " + error.message, true); return; }
+  status("Instellingen opgeslagen ✓");
+  await loadConfig();
+};
+
+/* ---------- Importeren ---------- */
+
+const dz = $("dropzone");
+const fileInput = $("file");
+
+dz.addEventListener("click", () => fileInput.click());
+dz.addEventListener("dragover", (e) => { e.preventDefault(); dz.classList.add("hover"); });
+dz.addEventListener("dragleave", () => dz.classList.remove("hover"));
+dz.addEventListener("drop", (e) => {
+  e.preventDefault();
+  dz.classList.remove("hover");
+  if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+});
+fileInput.addEventListener("change", () => {
+  if (fileInput.files[0]) handleFile(fileInput.files[0]);
+});
+
+async function handleFile(file) {
+  parsedImport = null;
+  $("import-actions").classList.add("hidden");
+  const name = file.name.toLowerCase();
+  try {
+    let parsed;
+    if (name.endsWith(".xlsx") || name.endsWith(".xls")) {
+      parsed = parseXlsx(await file.arrayBuffer());
+    } else if (name.endsWith(".md") || name.endsWith(".markdown")) {
+      parsed = parseMarkdown(await file.text());
+    } else {
+      parsed = parseCsv(await file.text());
+    }
+    renderPreview(parsed, file.name);
+  } catch (e) {
+    $("import-preview").innerHTML = `<p class="bad">Kon het bestand niet lezen: ${esc(e.message || e)}</p>`;
+  }
+}
+
+function renderPreview(rows, filename) {
+  if (!rows.length) {
+    $("import-preview").innerHTML = `<p class="bad">Geen vragen gevonden in ${esc(filename)}. Controleer het formaat.</p>`;
+    return;
+  }
+  const bad = rows.filter((r) => r._bad).length;
+  const good = rows.length - bad;
+  let html = `<p class="ok">${good} vraag/vragen gevonden${bad ? `, <span class="bad">${bad} zonder herkenbaar juist antwoord</span>` : ""}.</p><ol>`;
+  rows.forEach((r) => {
+    html += `<li>${esc(r.vraag)}<br><span class="muted">`;
+    html += r.opties.map((o, i) => (i === r.juist ? `<strong>${LETTERS[i]}) ${esc(o)}</strong>` : `${LETTERS[i]}) ${esc(o)}`)).join(" &nbsp;·&nbsp; ");
+    if (r.uitleg) html += `<br><em>${esc(r.uitleg)}</em>`;
+    html += "</span></li>";
+  });
+  html += "</ol>";
+  $("import-preview").innerHTML = html;
+  parsedImport = rows;
+  $("import-actions").classList.remove("hidden");
+}
+
+$("btn-import").onclick = async () => {
+  if (!parsedImport || !parsedImport.length) return;
+  const mode = document.querySelector('input[name="import-mode"]:checked')?.value || "append";
+  const payload = parsedImport.map((r) => ({
+    vraag: r.vraag,
+    opties: r.opties,
+    juist: r.juist,
+    uitleg: r.uitleg || "",
+  }));
+  const { data, error } = await sb.rpc("host_import_questions", {
+    p_host_key: HOST_KEY,
+    p_questions: payload,
+    p_replace: mode === "replace",
+  });
+  if (error) { status("Fout: " + error.message, true); return; }
+  status(`${data} vraag/vragen geïmporteerd ✓`);
+  parsedImport = null;
+  $("import-preview").innerHTML = "";
+  $("import-actions").classList.add("hidden");
+  fileInput.value = "";
+  await reload();
+};
+
+/* --- parsers --- */
+
+function parseAnswer(v, n) {
+  const s = String(v ?? "").trim().toUpperCase();
+  if (!s) return -1;
+  if (/^[A-F]$/.test(s)) {
+    const i = s.charCodeAt(0) - 65;
+    return i < n ? i : -1;
+  }
+  const num = parseInt(s.replace(/[^0-9]/g, ""), 10);
+  if (!isNaN(num)) {
+    if (num >= 1 && num <= n) return num - 1;
+    if (num === 0) return 0;
+  }
+  return -1;
+}
+
+function detectDelim(text) {
+  const first = (text.split(/\r?\n/)[0] || "");
+  const sc = (first.match(/;/g) || []).length;
+  const cc = (first.match(/,/g) || []).length;
+  return sc > cc ? ";" : ",";
+}
+
+function parseCsv(text) {
+  const delim = detectDelim(text);
+  const rows = [];
+  let row = [], field = "", inQ = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (inQ) {
+      if (ch === '"') {
+        if (text[i + 1] === '"') { field += '"'; i++; } else inQ = false;
+      } else field += ch;
+    } else if (ch === '"') {
+      inQ = true;
+    } else if (ch === delim) {
+      row.push(field); field = "";
+    } else if (ch === "\n") {
+      row.push(field); rows.push(row); row = []; field = "";
+    } else if (ch !== "\r") {
+      field += ch;
+    }
+  }
+  if (field !== "" || row.length) { row.push(field); rows.push(row); }
+  return rowsToQuestions(rows.filter((r) => r.some((c) => String(c).trim() !== "")));
+}
+
+function parseXlsx(buf) {
+  if (!window.XLSX) throw new Error("Excel-lezer niet geladen (geen internet?)");
+  const wb = XLSX.read(buf, { type: "array" });
+  const sheet = wb.Sheets[wb.SheetNames[0]];
+  const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, blankrows: false });
+  return rowsToQuestions(rows.map((r) => r.map((c) => (c == null ? "" : c))));
+}
+
+function rowsToQuestions(rows) {
+  if (!rows.length) return [];
+  const first = rows[0].map((c) => String(c).trim().toLowerCase());
+  const hasHeader = first.some((c) => /vraag|question/.test(c)) || first.includes("a");
+  const header = hasHeader ? first : null;
+  const data = hasHeader ? rows.slice(1) : rows;
+
+  const findCol = (names) => (header ? header.findIndex((h) => names.some((n) => h === n || h.startsWith(n))) : -1);
+
+  let vraagCol, juistCol, uitlegCol, optCols;
+  if (header) {
+    vraagCol = findCol(["vraag", "question"]);
+    if (vraagCol < 0) vraagCol = 0;
+    juistCol = findCol(["juist", "correct", "antwoord", "answer"]);
+    uitlegCol = findCol(["uitleg", "toelichting", "duiding", "explanation"]);
+    const letterCols = header.map((h, i) => ({ h, i })).filter(({ h }) => /^(optie\s*_?)?[a-f]$/.test(h));
+    if (letterCols.length >= 2) {
+      optCols = letterCols.map((x) => x.i);
+    } else {
+      const start = vraagCol + 1;
+      const end = juistCol > start ? juistCol : Math.min(header.length, start + 4);
+      optCols = [];
+      for (let i = start; i < end; i++) optCols.push(i);
+    }
+  } else {
+    vraagCol = 0; optCols = [1, 2, 3, 4]; juistCol = 5; uitlegCol = 6;
+  }
+
+  const out = [];
+  for (const r of data) {
+    const vraag = String(r[vraagCol] ?? "").trim();
+    if (!vraag) continue;
+    const opties = optCols.map((i) => String(r[i] ?? "").trim()).filter((o) => o !== "");
+    if (opties.length < 2) continue;
+    const juist = parseAnswer(r[juistCol], opties.length);
+    const uitleg = uitlegCol >= 0 ? String(r[uitlegCol] ?? "").trim() : "";
+    out.push({ vraag, opties, juist: juist < 0 ? 0 : juist, uitleg, _bad: juist < 0 });
+  }
+  return out;
+}
+
+function parseMarkdown(md) {
+  const blocks = md.split(/\n(?=#{1,6}\s)/).map((b) => b.trim()).filter(Boolean);
+  const out = [];
+  for (const block of blocks) {
+    const lines = block.split("\n").map((l) => l.trim()).filter(Boolean);
+    let vraag = "", opties = [], juist = 0, uitleg = "";
+    for (const line of lines) {
+      const h = line.match(/^#{1,6}\s*(.+)$/);
+      if (h) { vraag = h[1].trim(); continue; }
+      const bq = line.match(/^>\s*(.+)$/);
+      if (bq) { uitleg = (uitleg ? uitleg + " " : "") + bq[1].trim(); continue; }
+      const opt = line.match(/^[-*]\s+(.+)$/);
+      if (opt) {
+        let t = opt[1].trim();
+        let correct = false;
+        const cb = t.match(/^\[([xX ])\]\s*(.*)$/);
+        if (cb) { correct = cb[1].toLowerCase() === "x"; t = cb[2].trim(); }
+        else if (t.startsWith("*")) { correct = true; t = t.slice(1).trim(); }
+        if (correct) juist = opties.length;
+        opties.push(t);
+        continue;
+      }
+      if (!opties.length) vraag = vraag ? vraag + " " + line : line;
+    }
+    if (vraag && opties.length >= 2) {
+      out.push({ vraag, opties, juist, uitleg, _bad: false });
+    }
+  }
+  return out;
+}
+
+/* ---------- Vragenlijst ---------- */
 
 function render() {
   $("list").innerHTML = questions.length
     ? questions.map(cardHtml).join("")
-    : `<p class="muted">Nog geen vragen. Voeg er een toe.</p>`;
+    : `<p class="muted">Nog geen vragen. Voeg er een toe of importeer een bestand.</p>`;
 }
 
 function cardHtml(q) {
@@ -81,14 +333,12 @@ function cardHtml(q) {
         </div>`).join("")}
     </div>
 
-    <label>Uitleg na het antwoord (optioneel)</label>
-    <input class="f-uitleg" type="text" value="${esc(q.uitleg || "")}" placeholder="Eén zin uitleg">
+    <label>Duiding — extra tekst wanneer het juiste antwoord verschijnt (optioneel)</label>
+    <input class="f-uitleg" type="text" value="${esc(q.uitleg || "")}" placeholder="Waarom is dit het juiste antwoord?">
 
     <button class="btn primary" data-act="save">Opslaan</button>
   </div>`;
 }
-
-/* ---------- Acties ---------- */
 
 $("list").addEventListener("click", async (e) => {
   const btn = e.target.closest("[data-act]");
@@ -129,10 +379,7 @@ async function save(card, id) {
 }
 
 async function del(id) {
-  if (id === null) {  // nog niet opgeslagen kaart
-    await reload();
-    return;
-  }
+  if (id === null) { await reload(); return; }
   if (!confirm("Deze vraag verwijderen?")) return;
   const { error } = await sb.rpc("host_delete_question", { p_host_key: HOST_KEY, p_id: id });
   if (error) { status("Fout: " + error.message, true); return; }
@@ -151,12 +398,14 @@ $("btn-add").onclick = () => {
   const maxIdx = questions.reduce((m, q) => Math.max(m, q.idx), 0);
   questions.push({ id: null, idx: maxIdx + 1, vraag: "", opties: ["", "", "", ""], juist: 0, uitleg: "" });
   render();
-  $("list").lastElementChild.scrollIntoView({ behavior: "smooth", block: "center" });
-  $("list").lastElementChild.querySelector(".f-vraag").focus();
+  const last = $("list").lastElementChild;
+  last.scrollIntoView({ behavior: "smooth", block: "center" });
+  last.querySelector(".f-vraag").focus();
 };
 
-/* ---------- Auto-load als de key al bekend is ---------- */
+/* ---------- Start ---------- */
 
+loadBrand();
 if (HOST_KEY) {
   $("hostkey").value = HOST_KEY;
   load(HOST_KEY);
