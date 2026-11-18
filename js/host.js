@@ -1,5 +1,6 @@
 import { sb, esc } from "./supabase-client.js";
 import { ANSWER_SECONDS } from "./config.js";
+import QRCode from "https://esm.sh/qrcode@1.5.3";
 
 const $ = (id) => document.getElementById(id);
 const LETTERS = "ABCD";
@@ -51,9 +52,11 @@ async function startLobby() {
   $("roomcode").textContent = roomId;
   const url = joinUrl();
   $("joinurl").textContent = url;
-  if (window.QRCode) {
-    window.QRCode.toCanvas($("qr"), url, { width: 320, margin: 1 }, () => {});
-  }
+  const qrHost = $("qr");
+  qrHost.innerHTML = "";
+  const qrCanvas = document.createElement("canvas");
+  qrHost.appendChild(qrCanvas);
+  QRCode.toCanvas(qrCanvas, url, { width: 320, margin: 1 }, () => {});
   await refreshPlayers();
   subscribe();
 }
