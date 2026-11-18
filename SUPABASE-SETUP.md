@@ -12,12 +12,13 @@ De frontend is af. **De Supabase-backend moet nog opgezet worden.** Hieronder de
 
 1. **Maak een Supabase-project** aan. Noteer de **Project URL** en de **anon public key**
    (Project Settings → API).
-2. Open de **SQL Editor** en voer `supabase/migrations/0001_init.sql` volledig uit.
-   Dit maakt de tabellen, RLS, de RPC's en zet Realtime aan. Het script is idempotent
-   (je mag het opnieuw draaien).
-3. Bewerk `supabase/migrations/0002_seed.sql`: vervang `KIES-EEN-LANGE-RANDOM-STRING-hier`
-   door een **sterke random host-key** (32+ tekens). Voer het dan uit.
-   Die host-key is het "wachtwoord" van de quizmaster — de host typt hem eenmalig in op
+2. Open de **SQL Editor** en plak de inhoud van **`supabase/install-all.sql`** (alle
+   migraties in volgorde) en run het. Dat maakt de tabellen, RLS, de RPC's, de config en
+   zet Realtime aan. Het bestand is idempotent: opnieuw draaien kan geen kwaad.
+3. **Zet de host-key.** Het seed-bestand zet een placeholder (`KIES-EEN-LANGE-RANDOM-STRING-hier`).
+   Vervang die door een **sterke random string** (32+ tekens) in **Table Editor → `settings`
+   → rij `host_key`** — of pas de waarde in het seed-gedeelte aan vóór je het uitvoert.
+   Die host-key is het "wachtwoord" van de quizmaster; de host typt hem eenmalig in op
    `host.html`. Bewaar hem goed.
 4. Controleer de vragen in **Table Editor → `questions`** (5 rijen). Pas de inhoud gerust aan
    naar het echte thema; het zijn nu voorbeeldvragen.

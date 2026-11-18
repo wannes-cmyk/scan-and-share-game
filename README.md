@@ -55,6 +55,8 @@ js/card.js                        eindkaart-generator (canvas)
 js/host.js                        host-logica
 js/play.js                        speler-logica
 js/admin.js                       beheer-logica
+supabase/install-all.sql                ALLE migraties in volgorde — dit run je in de SQL-editor
+supabase/verify.sql                     controle: is alles toegepast?
 supabase/migrations/0001_init.sql         schema, RLS, RPC's, realtime
 supabase/migrations/0002_seed.sql         host-key + de startvragen
 supabase/migrations/0003_admin.sql        RPC's voor het beheren van vragen
@@ -132,6 +134,11 @@ Voorbeelden staan in `templates/` (er zijn downloadlinks in de admin).
 Er zijn 4 antwoordopties per vraag in het beheerscherm (het spel gaat daarvan uit).
 
 ## De backend (Supabase)
+
+**Opzetten of bijwerken:** plak de inhoud van `supabase/install-all.sql` in de SQL-editor en
+run het. Dat bestand bevat alle migraties in de juiste volgorde en is idempotent — je mag het
+gerust opnieuw draaien. Twijfel je of alles toegepast is? Run `supabase/verify.sql`: dat
+toont per tabel en per functie of die bestaat.
 
 Tabellen:
 

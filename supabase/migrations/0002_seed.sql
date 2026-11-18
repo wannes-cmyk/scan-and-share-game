@@ -4,7 +4,7 @@
 
 insert into settings (key, value)
 values ('host_key', 'KIES-EEN-LANGE-RANDOM-STRING-hier')
-on conflict (key) do update set value = excluded.value;
+on conflict (key) do nothing;   -- laat een bestaande (echte) host-key met rust
 
 insert into questions (idx, vraag, opties, juist, uitleg) values
   (1, 'Hoeveel procent van je werk denk je dat AI binnen 2 jaar overneemt?',
