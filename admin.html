@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Live Quiz — Vragen beheren</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="admin">
+  <div id="app">
+
+    <header class="admin-head">
+      <h1>Vragen beheren</h1>
+      <nav>
+        <a class="btn" href="host.html">Naar het host-scherm</a>
+        <a class="btn" href="index.html">Start</a>
+      </nav>
+    </header>
+
+    <section id="setup" class="screen">
+      <p class="muted">Voer de host-key in (dezelfde als op het host-scherm). Die wordt lokaal onthouden.</p>
+      <input id="hostkey" type="password" placeholder="host-key" autocomplete="off">
+      <button id="btn-load" class="btn primary">Vragen laden</button>
+      <p id="setup-error" class="error"></p>
+    </section>
+
+    <section id="editor" class="screen hidden">
+      <p id="status" class="status"></p>
+      <p class="muted small">De volgorde hieronder is de volgorde in het spel. Het juiste antwoord is wat de spelers <em>niet</em> te zien krijgen.</p>
+      <div id="list"></div>
+      <button id="btn-add" class="btn primary big">+ Nieuwe vraag</button>
+    </section>
+
+  </div>
+
+  <script type="module" src="js/admin.js"></script>
+</body>
+</html>

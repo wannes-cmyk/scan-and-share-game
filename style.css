@@ -176,3 +176,28 @@ body.play .screen { width: 100%; }
   .lobby-grid { grid-template-columns: 1fr; gap: 28px; }
   .opties { grid-template-columns: 1fr; }
 }
+
+/* ---------- Admin (vragen beheren) ---------- */
+body.admin #app { padding: 4vh 5vw; max-width: 900px; margin: 0 auto; }
+.admin-head { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; }
+.admin-head nav { display: flex; gap: 10px; }
+.admin-head h1 { margin: 0; font-size: clamp(24px, 3vw, 36px); }
+.status { min-height: 22px; font-weight: 600; color: var(--good); }
+.status.error { color: var(--bad); }
+
+.qcard { background: var(--panel); border: 1px solid #24242e; border-radius: var(--radius); padding: 22px; margin-bottom: 18px; }
+.qcard-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.qcard-num { font-weight: 700; color: var(--accent); }
+.qcard-actions { display: flex; gap: 8px; }
+.qcard label { display: block; font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 16px 0 6px; }
+.qcard input[type=text] { width: 100%; max-width: 100%; font-size: 17px; padding: 12px 14px; margin-bottom: 0; }
+.opts { display: grid; gap: 8px; }
+.optrow { display: flex; align-items: center; gap: 10px; }
+.optrow input[type=radio] { width: 22px; height: 22px; accent-color: var(--accent); flex: 0 0 auto; margin: 0; }
+.optrow b { color: var(--accent); width: 18px; }
+.optrow input[type=text] { flex: 1; }
+.qcard > .btn { margin-top: 18px; }
+.btn.small { padding: 8px 12px; font-size: 15px; }
+.btn.danger { border-color: #5a2a2a; color: #ff8a8a; }
+.btn.danger:hover { border-color: var(--bad); }
+.admin-foot { margin-top: 28px; }
